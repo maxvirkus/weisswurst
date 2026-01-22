@@ -119,7 +119,7 @@ function App() {
                   onChange={(mode) => setState((prev) => ({ ...prev, mode }))}
                 />
                 {state.mode === 'split' && (
-                  <>
+                  <div className={styles.priceInputs}>
                     <PriceInput 
                       price={state.pricePerWurst}
                       onChange={(pricePerWurst) => setState((prev) => ({ ...prev, pricePerWurst }))}
@@ -130,7 +130,7 @@ function App() {
                       onChange={(pricePerBrezel) => setState((prev) => ({ ...prev, pricePerBrezel }))}
                       label="Preis pro Brezel"
                     />
-                  </>
+                  </div>
                 )}
               </div>
             </div>

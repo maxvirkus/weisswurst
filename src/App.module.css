@@ -70,6 +70,8 @@
   max-width: 80rem;
   margin: 0 auto;
   padding: 1rem 0.75rem;
+  display: flex;
+  justify-content: center;
 }
 
 .grid {
@@ -77,6 +79,8 @@
   grid-template-columns: 1fr;
   gap: 1rem;
   align-items: start;
+  width: 100%;
+  max-width: 1200px;
 }
 
 /* Left Column */
@@ -115,6 +119,25 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.priceInputs {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .controlsInner {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+  
+  .priceInputs {
+    flex-wrap: nowrap;
+  }
 }
 
 /* Right Column */
@@ -198,12 +221,6 @@
     height: 340px;
   }
   
-  .controlsInner {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
   .footerInner {
     padding: 0 1.5rem;
   }
@@ -215,11 +232,13 @@
   }
   
   .main {
-    padding: 1.5rem 2rem;
+    padding: 5rem 2rem;
   }
   
   .grid {
     grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    max-width: 1100px;
   }
   
   .leftColumn {
