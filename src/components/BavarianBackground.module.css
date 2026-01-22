@@ -1,0 +1,41 @@
+/* ===== Bavarian Diamond Background - Echte Rauten ===== */
+.background {
+  /* === ANPASSBARE PARAMETER === */
+  --tile-size: 100px;              /* Rautengröße: 80-120px */
+  --bavaria-blue: #2F6FB6;         /* Bayern-Blau (leicht entsättigt) */
+  --bavaria-white: #F7FBFF;        /* Off-White */
+  --scrim-opacity: 0.25;           /* Overlay-Transparenz: 0.2-0.4 */
+  
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Layer 1: Echtes Diamond/Rauten-Pattern */
+.pattern {
+  position: absolute;
+  inset: 0;
+  
+  /* 
+   * conic-gradient erzeugt echte Rauten (Schachbrett-Muster):
+   * - Startet bei 45° für diagonale Ausrichtung
+   * - 4 Segmente à 90°: Blau, Weiß, Blau, Weiß
+   */
+  background: conic-gradient(
+    from 45deg,
+    var(--bavaria-blue) 0deg 90deg,
+    var(--bavaria-white) 90deg 180deg,
+    var(--bavaria-blue) 180deg 270deg,
+    var(--bavaria-white) 270deg 360deg
+  );
+  background-size: var(--tile-size) var(--tile-size);
+}
+
+/* Layer 2: Dezentes weißes Scrim für bessere Lesbarkeit */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, var(--scrim-opacity));
+}
