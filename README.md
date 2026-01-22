@@ -1,73 +1,101 @@
-# React + TypeScript + Vite
+# 🥨 Weißwurst Einstand Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Eine moderne Web-App zum Tracken von Weißwürsten und Brezeln beim Team-Einstand. Bayrisch, einfach, übersichtlich!
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **🎯 Interaktive 3D-Animation** - Klick auf Wurst oder Brezel zum Zählen
+- **👥 Kollegen-Management** - Einfach Namen hinzufügen, bearbeiten, löschen
+- **💰 Kosten-Splitting** - Automatische Preisberechnung pro Person
+- **📱 Mobile-First** - Perfekt optimiert für Handy und Desktop
+- **💾 LocalStorage** - Deine Daten bleiben lokal gespeichert
+- **🎨 Bayrisches Design** - Mit Liebe zum Detail gestaltet
 
-## React Compiler
+## 🚀 Live Demo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+[weisswurst.vercel.app](https://weisswurst.vercel.app) *(Link nach Deployment)*
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React 19** - UI Framework
+- **TypeScript** - Type Safety
+- **Three.js / React Three Fiber** - 3D Graphics
+- **Vite** - Build Tool
+- **CSS Modules** - Styling
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🏃‍♂️ Lokale Installation
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# Repository klonen
+git clone https://github.com/maxvirkus/weisswurst.git
+cd weisswurst
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Dependencies installieren
+npm install
+
+# Development Server starten
+npm run dev
+
+# Production Build
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📝 Verwendung
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. **Kollege hinzufügen** - Namen eingeben und Enter drücken
+2. **Person auswählen** - Auf Kollegen-Karte klicken
+3. **Wurst/Brezel klicken** - Zähler erhöht sich automatisch
+4. **Kosten aufteilen** - "Kosten teilen" aktivieren und Preise eingeben
+5. **Fertig!** - Übersicht zeigt totale Kosten an
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🎮 Features im Detail
+
+### Kollegen-Management
+- ✏️ Namen bearbeiten
+- 🗑️ Kollegen löschen
+- 🔄 Zähler zurücksetzen
+- ↕️ Sortierung (alphabetisch oder nach Anzahl)
+
+### Preisberechnung
+- Separater Preis für Würste und Brezeln
+- Automatische Gesamtkostenberechnung
+- Individuelle Kosten pro Person
+
+### Mobile Experience
+- Responsive Layout
+- Touch-optimiert
+- Keine horizontalen Scrollbalken
+- Optimierte Schriftgrößen
+
+## 🚀 Deployment
+
+### Vercel (Empfohlen)
+
+1. Gehe zu [vercel.com](https://vercel.com)
+2. Klicke "New Project"
+3. Importiere dein GitHub Repository
+4. Deploy! (Automatische Konfiguration)
+
+### Netlify
+
+```bash
+npm run build
+# Uploade den 'dist' Ordner auf Netlify
 ```
+
+## 📄 Lizenz
+
+MIT License
+
+## 👨‍💻 Autor
+
+**Max Virkus**
+- GitHub: [@maxvirkus](https://github.com/maxvirkus)
+
+## 🤝 Contributing
+
+Pull Requests sind willkommen! Für größere Änderungen bitte zuerst ein Issue öffnen.
+
+---
+
+Made with 🥨 in Bayern • Servus!
