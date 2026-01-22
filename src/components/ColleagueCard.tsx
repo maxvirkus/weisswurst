@@ -8,6 +8,7 @@ interface ColleagueCardProps {
   isActive: boolean;
   mode: AppMode;
   pricePerWurst: number;
+  pricePerBrezel: number;
   onSelect: () => void;
   onEdit: (name: string) => void;
   onDelete: () => void;
@@ -20,6 +21,7 @@ export function ColleagueCard({
   isActive,
   mode,
   pricePerWurst,
+  pricePerBrezel,
   onSelect,
   onEdit,
   onDelete,
@@ -45,18 +47,25 @@ export function ColleagueCard({
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (window.confirm(`"${colleague.name}" wirklich löschen?`)) {
       onDelete();
     }
   };
 
-  const totalPrice = colleague.count * pricePerWurst;
+  const totalPrice = (colleague.count * pricePerWurst) + ((colleague.brezelCount || 0) * pricePerBrezel);
 
   return (
     <div
       className={`${styles.card} ${isActive ? styles.cardActive : ''}`}
-      onClick={() => !isEditing && onSelect()}
+      onClick={(e) => {
+        // Nur wenn nicht auf Button oder Input geklickt wurde
+        const target = e.target as HTMLElement;
+        if (!target.closest('button') && !target.closest('input') && !isEditing) {
+          onSelect();
+        }
+      }}
     >
       <div className={styles.content}>
         <div className={styles.info}>
@@ -80,15 +89,11 @@ export function ColleagueCard({
             <span className={styles.label}>
               {colleague.count === 1 ? 'Wurst' : 'Würste'}
             </span>
-            {(colleague.brezelCount || 0) > 0 && (
-              <>
-                <span className={styles.separator}>•</span>
-                <span className={styles.count}>{colleague.brezelCount || 0}</span>
-                <span className={styles.label}>
-                  {(colleague.brezelCount || 0) === 1 ? 'Brezel' : 'Brezeln'}
-                </span>
-              </>
-            )}
+            <span className={styles.separator}>•</span>
+            <span className={styles.count}>{colleague.brezelCount || 0}</span>
+            <span className={styles.label}>
+              {(colleague.brezelCount || 0) === 1 ? 'Brezel' : 'Brezeln'}
+            </span>
             {mode === 'split' && colleague.count > 0 && (
               <span className={styles.price}>({formatEuro(totalPrice)})</span>
             )}
@@ -113,10 +118,7 @@ export function ColleagueCard({
             </button>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete();
-              }}
+              onClick={(e) => handleDelete(e)}
               className={`${styles.iconButton} ${styles.iconButtonDanger}`}
               title="Löschen"
             >

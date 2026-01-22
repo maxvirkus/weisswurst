@@ -49,7 +49,7 @@ function App() {
       ),
     }));
     
-    showToast(`+1 Wurst für ${activeColleague?.name}! 🥨`, 'success');
+    showToast(`+1 Wurst für ${activeColleague?.name}`, 'success');
   }, [state.activeColleagueId, activeColleague?.name, setState, showToast]);
 
   const handleBrezelComplete = useCallback(() => {
@@ -62,7 +62,7 @@ function App() {
       ),
     }));
     
-    showToast(`+1 Brezel für ${activeColleague?.name}! 🥨`, 'success');
+    showToast(`+1 Brezel für ${activeColleague?.name}`, 'success');
   }, [state.activeColleagueId, activeColleague?.name, setState, showToast]);
 
   const handleNoSelection = useCallback(() => {
@@ -172,6 +172,7 @@ function App() {
                   activeColleagueId={state.activeColleagueId}
                   mode={state.mode}
                   pricePerWurst={state.pricePerWurst}
+                  pricePerBrezel={state.pricePerBrezel || DEFAULT_BREZEL_PRICE}
                   sortMode={state.sortMode}
                   onColleaguesChange={(colleagues) => setState((prev) => ({ ...prev, colleagues }))}
                   onActiveChange={(activeColleagueId) => setState((prev) => ({ ...prev, activeColleagueId }))}

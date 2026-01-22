@@ -6,6 +6,8 @@
   transition: background-color var(--transition-normal);
   position: relative;
   z-index: 1;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -22,7 +24,7 @@
 .headerInner {
   max-width: 80rem;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 0.75rem;
 }
 
 .headerContent {
@@ -48,7 +50,7 @@
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: #1e3a5f;
   white-space: nowrap;
@@ -67,13 +69,13 @@
   width: 100%;
   max-width: 80rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem;
+  padding: 1rem 0.75rem;
 }
 
 .grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: start;
 }
 
@@ -82,7 +84,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  order: 1;
+  order: 2;
 }
 
 /* Scene Card */
@@ -117,7 +119,7 @@
 
 /* Right Column */
 .rightColumn {
-  order: 2;
+  order: 1;
 }
 
 .colleagueCard {
@@ -220,12 +222,16 @@
     grid-template-columns: 2fr 1fr;
   }
   
-  .sceneContainer {
-    height: 400px;
+  .leftColumn {
+    order: 1;
   }
   
   .rightColumn {
-    /* Sticky entfernt für bessere Bündigkeit */
+    order: 2;
+  }
+  
+  .sceneContainer {
+    height: 400px;
   }
   
   .colleagueList {

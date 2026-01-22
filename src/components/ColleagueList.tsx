@@ -9,6 +9,7 @@ interface ColleagueListProps {
   activeColleagueId: string | null;
   mode: AppMode;
   pricePerWurst: number;
+  pricePerBrezel: number;
   sortMode: SortMode;
   onColleaguesChange: (colleagues: Colleague[]) => void;
   onActiveChange: (id: string | null) => void;
@@ -20,6 +21,7 @@ export function ColleagueList({
   activeColleagueId,
   mode,
   pricePerWurst,
+  pricePerBrezel,
   sortMode,
   onColleaguesChange,
   onActiveChange,
@@ -74,15 +76,20 @@ export function ColleagueList({
 
   const handleDecrement = (id: string) => {
     onColleaguesChange(
-      colleagues.map((c) =>
-        c.id === id ? { ...c, count: Math.max(0, c.count - 1) } : c
-      )
+      colleagues.map((c) => {
+        if (c.id === id) {
+          const newCount = Math.max(0, c.count - 1);
+          const newBrezelCount = Math.max(0, (c.brezelCount || 0) - 1);
+          return { ...c, count: newCount, brezelCount: newBrezelCount };
+        }
+        return c;
+      })
     );
   };
 
   const handleReset = (id: string) => {
     onColleaguesChange(
-      colleagues.map((c) => (c.id === id ? { ...c, count: 0 } : c))
+      colleagues.map((c) => (c.id === id ? { ...c, count: 0, brezelCount: 0 } : c))
     );
   };
 
@@ -144,6 +151,7 @@ export function ColleagueList({
               isActive={colleague.id === activeColleagueId}
               mode={mode}
               pricePerWurst={pricePerWurst}
+              pricePerBrezel={pricePerBrezel}
               onSelect={() => onActiveChange(colleague.id)}
               onEdit={(name) => handleEdit(colleague.id, name)}
               onDelete={() => handleDelete(colleague.id)}
