@@ -1,7 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import type { ThreeEvent } from '@react-three/fiber';
-import { Environment, ContactShadows } from '@react-three/drei';
+import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import styles from './WurstScene.module.css';
 
@@ -423,32 +423,6 @@ function Senfglas({ senfWave }: { senfWave: number }) {
   const senfBaseColor = '#8B5A2B';        // Dunkelbraun (Saddle Brown)
   const senfDarkerColor = '#6B4423';      // Noch dunkler für unten
   const senfSurfaceColor = '#9C6B30';     // Etwas heller für Oberfläche
-  const senfGrainColor = '#4A3520';       // Dunkle Senfkörner
-
-  // Konsistente Körner-Positionen
-  const surfaceGrains = React.useMemo(() => {
-    const grains = [];
-    for (let i = 0; i < 30; i++) {
-      const angle = (i / 30) * Math.PI * 2 + (i * 0.37);
-      const radius = 0.06 + (i % 6) * 0.035;
-      const size = 0.006 + (i % 4) * 0.004;
-      const yOffset = (i % 5) * 0.003;
-      grains.push({ angle, radius, size, yOffset });
-    }
-    return grains;
-  }, []);
-
-  const innerGrains = React.useMemo(() => {
-    const grains = [];
-    for (let i = 0; i < 20; i++) {
-      const angle = (i / 20) * Math.PI * 2 + i * 0.5;
-      const radius = 0.08 + (i % 5) * 0.04;
-      const yPos = 0.1 + (i % 4) * 0.08;
-      const size = 0.01 + (i % 3) * 0.006;
-      grains.push({ angle, radius, yPos, size });
-    }
-    return grains;
-  }, []);
 
   return (
     <group position={[1.3, glasY, 0]}>

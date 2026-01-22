@@ -69,14 +69,6 @@ function App() {
     showToast('Erst einen Namen auswählen!', 'warning');
   }, [showToast]);
 
-  const handleResetAll = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      colleagues: prev.colleagues.map((c) => ({ ...c, count: 0, brezelCount: 0 })),
-    }));
-    showToast('Alle Zähler zurückgesetzt', 'info');
-  }, [setState, showToast]);
-
   return (
     <>
       <BavarianBackground />
@@ -149,7 +141,6 @@ function App() {
               mode={state.mode}
               pricePerWurst={state.pricePerWurst}
               pricePerBrezel={state.pricePerBrezel}
-              onResetAll={handleResetAll}
             />
           </div>
 

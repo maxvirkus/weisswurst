@@ -7,19 +7,12 @@ interface SummaryProps {
   mode: AppMode;
   pricePerWurst: number;
   pricePerBrezel: number;
-  onResetAll: () => void;
 }
 
-export function Summary({ colleagues, mode, pricePerWurst, pricePerBrezel, onResetAll }: SummaryProps) {
+export function Summary({ colleagues, mode, pricePerWurst, pricePerBrezel }: SummaryProps) {
   const totalWurst = colleagues.reduce((sum, c) => sum + c.count, 0);
   const totalBrezeln = colleagues.reduce((sum, c) => sum + (c.brezelCount || 0), 0);
   const totalPrice = (totalWurst * (pricePerWurst || 0)) + (totalBrezeln * (pricePerBrezel || 0));
-
-  const handleResetAll = () => {
-    if (window.confirm('Wirklich alle Zähler auf 0 setzen?')) {
-      onResetAll();
-    }
-  };
 
   return (
     <div className={styles.card}>
