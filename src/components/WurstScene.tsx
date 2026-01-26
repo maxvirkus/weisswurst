@@ -285,6 +285,8 @@ function BrezelGLB({
   const groupRef = useRef<THREE.Group>(null);
   const brezelRef = useRef<THREE.Group>(null);
   const { scene } = useGLTF('/pretzel.glb');
+  // Store initial rotation to return to after animation
+  const initialRotationY = Math.PI - 0.3;
 
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -297,22 +299,24 @@ function BrezelGLB({
     if (isAnimating) {
       const phase = animationProgress;
       
-      // Brezel bounce animation
-      if (phase < 0.5) {
-        const t = phase / 0.5;
-        const bounce = Math.sin(t * Math.PI) * 0.3;
-        groupRef.current.position.y = -0.1 + bounce;
-        brezelRef.current.rotation.y = t * Math.PI * 2;
-      } else {
-        const t = (phase - 0.5) / 0.5;
-        const easeT = 1 - Math.pow(1 - t, 2);
-        groupRef.current.position.y = -0.1 + (0.3 - 0) * easeT;
-        brezelRef.current.rotation.y = Math.PI * 2;
-      }
+      // Smooth easing for entire animation
+      const easeInOut = phase < 0.5 
+        ? 2 * phase * phase 
+        : 1 - Math.pow(-2 * phase + 2, 2) / 2;
+      
+      // Rotation: counter-clockwise (negative direction), full 360°
+      brezelRef.current.rotation.y = initialRotationY - easeInOut * Math.PI * 2;
+      
+      // Smooth bounce: up and down in one fluid motion
+      const bounce = Math.sin(phase * Math.PI) * 0.3;
+      groupRef.current.position.y = -0.1 + bounce;
     } else {
-      // Idle animation: gentle rotation
+      // Idle animation: gentle bounce (same as Wurst)
+      groupRef.current.position.x = -1.1;
       groupRef.current.position.y = -0.1 + Math.sin(Date.now() * 0.002) * 0.05;
-      brezelRef.current.rotation.y = Date.now() * 0.0005;
+      groupRef.current.position.z = 1.2;
+      // Reset rotation to initial value
+      brezelRef.current.rotation.y = initialRotationY;
     }
   });
 
@@ -348,7 +352,7 @@ function BrezelGLB({
 
   return (
     <group ref={groupRef} position={[-1.1, -0.1, 1.2]}>
-      <group ref={brezelRef} rotation={[Math.PI / 2, 0, 0]} scale={8.0}>
+      <group ref={brezelRef} rotation={[Math.PI / 2, Math.PI - 0.3, 0]} scale={8.0}>
         <primitive object={clonedScene} />
       </group>
       
@@ -1046,7 +1050,7 @@ function Scene({
       // Start init animation, then automatically trigger dip animation
       setIsInitMode(false);
       const startTime = Date.now();
-      const duration = 1500; // 1.5 seconds for scene transition
+      const duration = 600; // 0.6 seconds for fast scene transition
       
       const animateInit = () => {
         const elapsed = Date.now() - startTime;
@@ -1058,13 +1062,12 @@ function Scene({
           initAnimationRef.current = requestAnimationFrame(animateInit);
         } else {
           setInitAnimationProgress(1);
-          // After init animation completes, trigger the dip animation
-          setTimeout(() => {
-            if (!isDippingRef.current) {
-              isDippingRef.current = true;
-              hasCalledCompleteRef.current = false;
-              setIsAnimating(true);
-              setAnimationProgress(0);
+          // After init animation completes, immediately trigger the dip animation
+          if (!isDippingRef.current) {
+            isDippingRef.current = true;
+            hasCalledCompleteRef.current = false;
+            setIsAnimating(true);
+            setAnimationProgress(0);
               
               const dipStartTime = Date.now();
               const dipDuration = 1200;
@@ -1096,9 +1099,8 @@ function Scene({
                 }
               };
               
-              animationRef.current = requestAnimationFrame(animateDip);
-            }
-          }, 100);
+            animationRef.current = requestAnimationFrame(animateDip);
+          }
         }
       };
       
@@ -1171,7 +1173,7 @@ function Scene({
       // Start init animation, then automatically trigger brezel animation
       setIsInitMode(false);
       const startTime = Date.now();
-      const duration = 1500; // 1.5 seconds for scene transition
+      const duration = 600; // 0.6 seconds for fast scene transition
       
       const animateInit = () => {
         const elapsed = Date.now() - startTime;
@@ -1183,13 +1185,12 @@ function Scene({
           initAnimationRef.current = requestAnimationFrame(animateInit);
         } else {
           setInitAnimationProgress(1);
-          // After init animation completes, trigger the brezel animation
-          setTimeout(() => {
-            if (!isBrezelClickingRef.current) {
-              isBrezelClickingRef.current = true;
-              hasCalledBrezelCompleteRef.current = false;
-              setIsBrezelAnimating(true);
-              setBrezelAnimationProgress(0);
+          // After init animation completes, immediately trigger the brezel animation
+          if (!isBrezelClickingRef.current) {
+            isBrezelClickingRef.current = true;
+            hasCalledBrezelCompleteRef.current = false;
+            setIsBrezelAnimating(true);
+            setBrezelAnimationProgress(0);
               
               const brezelStartTime = Date.now();
               const brezelDuration = 800;
@@ -1214,9 +1215,8 @@ function Scene({
                 }
               };
 
-              brezelAnimationRef.current = requestAnimationFrame(animateBrezel);
-            }
-          }, 100);
+            brezelAnimationRef.current = requestAnimationFrame(animateBrezel);
+          }
         }
       };
       
@@ -1508,13 +1508,16 @@ export function WurstScene({
     <div className={styles.container}>
       <Canvas
         shadows="soft"
-        camera={{ position: [0, 1.5, 4], fov: 40 }}
+        camera={{ 
+          position: [0, 1.5, 4], 
+          fov: typeof window !== 'undefined' && window.innerWidth < 640 ? 50 : 40 
+        }}
         gl={{ 
           antialias: true,
           powerPreference: 'high-performance',
           failIfMajorPerformanceCaveat: false,
         }}
-        dpr={[1, 2]}
+        dpr={typeof window !== 'undefined' && window.innerWidth < 640 ? [1, 1.5] : [1, 2]}
         onCreated={({ gl }) => {
           gl.setClearColor(new THREE.Color('#e5e7eb'));
           // Soft shadows aktivieren

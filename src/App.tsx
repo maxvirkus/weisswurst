@@ -69,10 +69,18 @@ function App() {
     showToast('Erst einen Namen auswählen!', 'warning');
   }, [showToast]);
 
+  const handleOutsideClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    // Deselektiere nur wenn außerhalb des Kollegen-Bereichs UND der Szene geklickt wird
+    if (!target.closest('[data-colleague-area]') && !target.closest('[data-scene-area]')) {
+      setState((prev) => ({ ...prev, activeColleagueId: null }));
+    }
+  }, [setState]);
+
   return (
     <>
       <BavarianBackground />
-      <div className={styles.container}>
+      <div className={styles.container} onClick={handleOutsideClick}>
         <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       
       {/* Header */}
@@ -97,7 +105,7 @@ function App() {
           {/* Left Column */}
           <div className={styles.leftColumn}>
             {/* 3D Scene Card */}
-            <div className={styles.sceneCard}>
+            <div className={styles.sceneCard} data-scene-area>
               <div className={styles.sceneContainer}>
                 <WurstScene 
                   hasActiveColleague={!!state.activeColleagueId}
@@ -145,7 +153,7 @@ function App() {
           </div>
 
           {/* Right Column */}
-          <div className={styles.rightColumn}>
+          <div className={styles.rightColumn} data-colleague-area onClick={(e) => e.stopPropagation()}>
             <div className={styles.colleagueCard}>
               <div className={styles.colleagueHeader}>
                 <h2 className={styles.colleagueTitle}>
