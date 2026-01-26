@@ -19,11 +19,13 @@ interface WurstSceneProps {
 function Weisswurst({ 
   isAnimating, 
   animationProgress,
-  onClick 
+  onClick,
+  initAnimationProgress
 }: { 
   isAnimating: boolean;
   animationProgress: number;
   onClick: () => void;
+  initAnimationProgress: number;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const wurstRef = useRef<THREE.Group>(null);
@@ -43,8 +45,8 @@ function Weisswurst({
       const phase = animationProgress;
       
       // Positionen - Glas steht bei x=1.9, y=-0.8, z=0.8
-      // Wurst idle position: x=0.8, y=0.2, z=1.4
-      const idleX = 0.8;
+      // Wurst idle position: x=1.0, y=0.2, z=1.4
+      const idleX = 1.0;
       const idleY = 0.2;
       const idleZ = 1.4;
       const glasX = 1.9;     // Senfglas Position
@@ -109,7 +111,10 @@ function Weisswurst({
       groupRef.current.rotation.z = tilt;
     } else {
       // Idle animation: gentle float
-      groupRef.current.position.x = 0.8;
+      // Interpolate X position during init (from 0.5 to 1.0)
+      const initStartX = 0.5;
+      const finalX = 1.0;
+      groupRef.current.position.x = initStartX + (finalX - initStartX) * initAnimationProgress;
       groupRef.current.position.y = 0.2 + Math.sin(Date.now() * 0.002) * 0.05;
       groupRef.current.position.z = 1.4;
       groupRef.current.rotation.z = 0;
@@ -276,11 +281,13 @@ function Weisswurst({
 function BrezelGLB({ 
   isAnimating, 
   animationProgress,
-  onClick 
+  onClick,
+  initAnimationProgress
 }: { 
   isAnimating: boolean;
   animationProgress: number;
   onClick: () => void;
+  initAnimationProgress: number;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const brezelRef = useRef<THREE.Group>(null);
@@ -312,7 +319,10 @@ function BrezelGLB({
       groupRef.current.position.y = -0.1 + bounce;
     } else {
       // Idle animation: gentle bounce (same as Wurst)
-      groupRef.current.position.x = -1.1;
+      // Interpolate X position during init (from -0.5 to -1.3)
+      const initStartX = -0.5;
+      const finalX = -1.3;
+      groupRef.current.position.x = initStartX + (finalX - initStartX) * initAnimationProgress;
       groupRef.current.position.y = -0.1 + Math.sin(Date.now() * 0.002) * 0.05;
       groupRef.current.position.z = 1.2;
       // Reset rotation to initial value
@@ -351,7 +361,7 @@ function BrezelGLB({
   }, [scene]);
 
   return (
-    <group ref={groupRef} position={[-1.1, -0.1, 1.2]}>
+    <group ref={groupRef} position={[-1.3, -0.1, 1.2]}>
       <group ref={brezelRef} rotation={[Math.PI / 2, Math.PI - 0.3, 0]} scale={8.0}>
         <primitive object={clonedScene} />
       </group>
@@ -370,6 +380,7 @@ function BrezelGLB({
 
 // Preload GLB
 useGLTF.preload('/pretzel.glb');
+useGLTF.preload('/german_beer_bottle_with_crown_cap.glb');
 
 // Erstelle bauchige Senfglas-Geometrie mit LatheGeometry
 // Händlmaier-Stil: Bauch → Schulter → deutlicher Hals → Schraubrand
@@ -734,6 +745,44 @@ function TellerWurst({ index, total }: { index: number; total: number }) {
   );
 }
 
+// Bier-Flasche als Deko
+function BeerBottle() {
+  const { scene } = useGLTF('/german_beer_bottle_with_crown_cap.glb');
+  
+  // Clone scene und konvertiere Materials
+  const clonedScene = useMemo(() => {
+    const cloned = scene.clone();
+    cloned.traverse((child) => {
+      if (child.type === 'Mesh') {
+        const mesh = child as THREE.Mesh;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        if (mesh.material && !Array.isArray(mesh.material) && mesh.material.type === 'MeshBasicMaterial') {
+          const oldMat = mesh.material as THREE.MeshBasicMaterial;
+          mesh.material = new THREE.MeshPhysicalMaterial({
+            color: oldMat.color,
+            map: oldMat.map,
+            roughness: 0.15,
+            metalness: 0.4,
+            clearcoat: 0.6,
+            clearcoatRoughness: 0.1,
+            reflectivity: 0.8,
+            transparent: false,
+            opacity: 1.0
+          });
+        }
+      }
+    });
+    return cloned;
+  }, [scene]);
+  
+  return (
+    <group position={[1.3, -0.85, -2.0]} rotation={[0, -0.4, 0]} scale={5.0}>
+      <primitive object={clonedScene} />
+    </group>
+  );
+}
+
 // Einzelne Brezel hinter dem Teller
 // Einzelne Brezel hinter dem Teller - GLB Version
 function TellerBrezel({ index, total }: { index: number; total: number }) {
@@ -1008,9 +1057,9 @@ function Scene({
         camera.position.set(0, 1.8, 3.5);
         camera.lookAt(0, 0, 0.8);
       } else if (progress < 1) {
-        // Smooth transition
+        // Smooth transition with ease-in-out
         const t = progress;
-        const easeT = 1 - Math.pow(1 - t, 3); // ease-out cubic
+        const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // ease-in-out cubic
         
         // Interpolate position
         const startPos = { x: 0, y: 1.8, z: 3.5 };
@@ -1050,7 +1099,7 @@ function Scene({
       // Start init animation, then automatically trigger dip animation
       setIsInitMode(false);
       const startTime = Date.now();
-      const duration = 600; // 0.6 seconds for fast scene transition
+      const duration = 900; // 0.9 seconds for smooth scene transition
       
       const animateInit = () => {
         const elapsed = Date.now() - startTime;
@@ -1173,7 +1222,7 @@ function Scene({
       // Start init animation, then automatically trigger brezel animation
       setIsInitMode(false);
       const startTime = Date.now();
-      const duration = 600; // 0.6 seconds for fast scene transition
+      const duration = 900; // 0.9 seconds for smooth scene transition
       
       const animateInit = () => {
         const elapsed = Date.now() - startTime;
@@ -1314,11 +1363,13 @@ function Scene({
         isAnimating={isAnimating}
         animationProgress={animationProgress}
         onClick={handleClick}
+        initAnimationProgress={initAnimationProgress}
       />
       <BrezelGLB 
         isAnimating={isBrezelAnimating}
         animationProgress={brezelAnimationProgress}
         onClick={handleBrezelClick}
+        initAnimationProgress={initAnimationProgress}
       />
       
       {/* Objects that appear after initialization with fly-in animation */}
@@ -1333,6 +1384,7 @@ function Scene({
         >
           <Senfglas senfWave={senfWave} />
           <Teller wurstCount={wurstCount} brezelCount={brezelCount} />
+          <BeerBottle />
           <WoodTable />
         </group>
       )}
