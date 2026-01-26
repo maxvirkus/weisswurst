@@ -16,6 +16,7 @@ export interface AppState {
   pricePerWurst: number;
   pricePerBrezel: number;
   sortMode: SortMode;
+  schemaVersion: number;
 }
 
 export interface Toast {
@@ -28,3 +29,9 @@ export const DEFAULT_PRICE = 2.0;
 export const DEFAULT_BREZEL_PRICE = 1.0;
 
 export const STORAGE_KEY = 'weisswurst-einstand';
+
+/**
+ * Schema version for localStorage migrations.
+ * Increment when making breaking changes to AppState.
+ */
+export const SCHEMA_VERSION = 1;

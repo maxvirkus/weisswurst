@@ -1,13 +1,14 @@
 import { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import type { AppState, Toast } from './types';
-import { DEFAULT_PRICE, DEFAULT_BREZEL_PRICE, STORAGE_KEY } from './types';
+import { DEFAULT_PRICE, DEFAULT_BREZEL_PRICE, STORAGE_KEY, SCHEMA_VERSION } from './types';
 import { useLocalStorageState } from './hooks/useLocalStorageState';
 import { ColleagueList } from './components/ColleagueList';
 import { Summary } from './components/Summary';
 import { ModeToggle } from './components/ModeToggle';
 import { PriceInput } from './components/PriceInput';
 import { WurstScene } from './components/WurstScene';
+import { SceneErrorBoundary } from './components/SceneErrorBoundary';
 import { ToastContainer } from './components/ToastContainer';
 import styles from './App.module.css';
 
@@ -18,6 +19,7 @@ const initialState: AppState = {
   pricePerWurst: DEFAULT_PRICE,
   pricePerBrezel: DEFAULT_BREZEL_PRICE,
   sortMode: 'alphabetical',
+  schemaVersion: SCHEMA_VERSION,
 };
 
 function App() {
@@ -109,16 +111,18 @@ function App() {
             {/* 3D Scene Card */}
             <div className={styles.sceneCard} data-scene-area>
               <div className={styles.sceneContainer}>
-                <WurstScene 
-                  hasActiveColleague={!!state.activeColleagueId}
-                  activeColleagueName={activeColleague?.name ?? null}
-                  wurstCount={activeColleague?.count ?? 0}
-                  brezelCount={activeColleague?.brezelCount ?? 0}
-                  onDipComplete={handleDipComplete}
-                  onBrezelComplete={handleBrezelComplete}
-                  onNoSelection={handleNoSelection}
-                  onBeerClick={handleBeerClick}
-                />
+                <SceneErrorBoundary>
+                  <WurstScene 
+                    hasActiveColleague={!!state.activeColleagueId}
+                    activeColleagueName={activeColleague?.name}
+                    wurstCount={activeColleague?.count ?? 0}
+                    brezelCount={activeColleague?.brezelCount ?? 0}
+                    onDipComplete={handleDipComplete}
+                    onBrezelComplete={handleBrezelComplete}
+                    onNoSelection={handleNoSelection}
+                    onBeerClick={handleBeerClick}
+                  />
+                </SceneErrorBoundary>
               </div>
             </div>
 

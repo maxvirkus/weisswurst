@@ -1,6 +1,46 @@
 import { useState, useEffect, useCallback } from 'react';
+import { SCHEMA_VERSION, type AppState, type Colleague } from '../types';
 
-export function useLocalStorageState<T>(
+/**
+ * Migrates old data to the current schema version.
+ * Add migration steps here when incrementing SCHEMA_VERSION.
+ */
+function migrateData<T extends AppState>(data: Partial<T>, currentVersion: number): T {
+  let migrated = { ...data } as T;
+  const storedVersion = data.schemaVersion ?? 0;
+  
+  // No migration needed if already at current version
+  if (storedVersion >= currentVersion) {
+    return migrated;
+  }
+  
+  // Migration from v0 (no version) to v1
+  if (storedVersion < 1) {
+    // Ensure brezelCount exists on all colleagues
+    if (migrated.colleagues) {
+      migrated.colleagues = migrated.colleagues.map((c: Partial<Colleague>) => ({
+        ...c,
+        brezelCount: c.brezelCount ?? 0,
+      })) as Colleague[];
+    }
+    
+    // Ensure pricePerBrezel exists
+    migrated.pricePerBrezel = migrated.pricePerBrezel ?? 1.0;
+    
+    // Ensure sortMode exists
+    migrated.sortMode = migrated.sortMode ?? 'alphabetical';
+  }
+  
+  // Add future migrations here:
+  // if (storedVersion < 2) { ... }
+  
+  // Update schema version
+  migrated.schemaVersion = currentVersion;
+  
+  return migrated;
+}
+
+export function useLocalStorageState<T extends AppState>(
   key: string,
   initialValue: T
 ): [T, React.Dispatch<React.SetStateAction<T>>, () => void] {
@@ -8,17 +48,18 @@ export function useLocalStorageState<T>(
     try {
       const stored = localStorage.getItem(key);
       if (stored) {
-        const parsed = JSON.parse(stored) as T;
-        // Merge mit initialValue um fehlende Felder zu ergänzen
-        if (typeof parsed === 'object' && parsed !== null && typeof initialValue === 'object' && initialValue !== null) {
-          return { ...initialValue, ...parsed };
-        }
-        return parsed;
+        const parsed = JSON.parse(stored) as Partial<T>;
+        
+        // Run migrations
+        const migrated = migrateData(parsed, SCHEMA_VERSION);
+        
+        // Merge with initialValue to fill in any missing fields
+        return { ...initialValue, ...migrated };
       }
     } catch (error) {
       console.error('Error reading from localStorage:', error);
     }
-    return initialValue;
+    return { ...initialValue, schemaVersion: SCHEMA_VERSION };
   });
 
   useEffect(() => {
@@ -32,7 +73,7 @@ export function useLocalStorageState<T>(
   const clearStorage = useCallback(() => {
     try {
       localStorage.removeItem(key);
-      setState(initialValue);
+      setState({ ...initialValue, schemaVersion: SCHEMA_VERSION });
     } catch (error) {
       console.error('Error clearing localStorage:', error);
     }
