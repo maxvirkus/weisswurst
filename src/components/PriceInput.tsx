@@ -32,7 +32,7 @@ export function PriceInput({ price, onChange, label = 'Preis/Wurst' }: PriceInpu
 
   return (
     <div className={styles.container}>
-      <label className={styles.label}>💰 {label}:</label>
+      <label className={styles.label}>{label}:</label>
       <div className={styles.inputWrapper}>
         <input
           type="text"

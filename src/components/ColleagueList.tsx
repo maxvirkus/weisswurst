@@ -74,13 +74,24 @@ export function ColleagueList({
     }
   };
 
-  const handleDecrement = (id: string) => {
+  const handleDecrementWurst = (id: string) => {
     onColleaguesChange(
       colleagues.map((c) => {
         if (c.id === id) {
           const newCount = Math.max(0, c.count - 1);
+          return { ...c, count: newCount };
+        }
+        return c;
+      })
+    );
+  };
+
+  const handleDecrementBrezel = (id: string) => {
+    onColleaguesChange(
+      colleagues.map((c) => {
+        if (c.id === id) {
           const newBrezelCount = Math.max(0, (c.brezelCount || 0) - 1);
-          return { ...c, count: newCount, brezelCount: newBrezelCount };
+          return { ...c, brezelCount: newBrezelCount };
         }
         return c;
       })
@@ -155,7 +166,8 @@ export function ColleagueList({
               onSelect={() => onActiveChange(colleague.id)}
               onEdit={(name) => handleEdit(colleague.id, name)}
               onDelete={() => handleDelete(colleague.id)}
-              onDecrement={() => handleDecrement(colleague.id)}
+              onDecrementWurst={() => handleDecrementWurst(colleague.id)}
+              onDecrementBrezel={() => handleDecrementBrezel(colleague.id)}
               onReset={() => handleReset(colleague.id)}
             />
           ))

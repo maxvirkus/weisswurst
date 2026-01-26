@@ -149,7 +149,6 @@ function App() {
             <div className={styles.colleagueCard}>
               <div className={styles.colleagueHeader}>
                 <h2 className={styles.colleagueTitle}>
-                  <span>👥</span>
                   <span className="truncate">Kolleg:innen</span>
                 </h2>
                 <span className={styles.colleagueCount}>

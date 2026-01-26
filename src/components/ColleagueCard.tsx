@@ -12,7 +12,8 @@ interface ColleagueCardProps {
   onSelect: () => void;
   onEdit: (name: string) => void;
   onDelete: () => void;
-  onDecrement: () => void;
+  onDecrementWurst: () => void;
+  onDecrementBrezel: () => void;
   onReset: () => void;
 }
 
@@ -25,7 +26,8 @@ export function ColleagueCard({
   onSelect,
   onEdit,
   onDelete,
-  onDecrement,
+  onDecrementWurst,
+  onDecrementBrezel,
   onReset,
 }: ColleagueCardProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -81,7 +83,17 @@ export function ColleagueCard({
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <h3 className={styles.name}>{colleague.name}</h3>
+            <h3 
+              className={styles.name}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+                setEditName(colleague.name);
+              }}
+              title="Doppelklick zum Bearbeiten"
+            >
+              {colleague.name}
+            </h3>
           )}
 
           <div className={styles.stats}>
@@ -101,45 +113,44 @@ export function ColleagueCard({
         </div>
 
         <div className={styles.actions}>
-          <div className={styles.actionRow}>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(true);
-                setEditName(colleague.name);
-              }}
-              className={styles.iconButton}
-              title="Bearbeiten"
-            >
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={(e) => handleDelete(e)}
-              className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-              title="Löschen"
-            >
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
-          </div>
-          {isActive && colleague.count > 0 && (
+          <button
+            type="button"
+            onClick={(e) => handleDelete(e)}
+            className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+            title="Löschen"
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+          {isActive && (colleague.count > 0 || (colleague.brezelCount || 0) > 0) && (
             <div className={styles.actionRow}>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDecrement();
-                }}
-                className={`${styles.smallButton} ${styles.decrementButton}`}
-                title="-1 Wurst"
-              >
-                -1
-              </button>
+              {colleague.count > 0 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecrementWurst();
+                  }}
+                  className={`${styles.smallButton} ${styles.decrementButton}`}
+                  title="Wurst entfernen"
+                >
+                  - 🌭
+                </button>
+              )}
+              {(colleague.brezelCount || 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDecrementBrezel();
+                  }}
+                  className={`${styles.smallButton} ${styles.decrementButton}`}
+                  title="Brezel entfernen"
+                >
+                  - 🥨
+                </button>
+              )}
               <button
                 type="button"
                 onClick={(e) => {

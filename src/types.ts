@@ -24,7 +24,7 @@ export interface Toast {
   type: 'info' | 'success' | 'error' | 'warning';
 }
 
-export const DEFAULT_PRICE = 2.5;
-export const DEFAULT_BREZEL_PRICE = 1.5;
+export const DEFAULT_PRICE = 2.0;
+export const DEFAULT_BREZEL_PRICE = 1.0;
 
 export const STORAGE_KEY = 'weisswurst-einstand';

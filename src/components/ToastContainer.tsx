@@ -41,7 +41,6 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
           className={`${styles.toast} ${getToastClass(toast.type)}`}
           onClick={() => onDismiss(toast.id)}
         >
-          <span className={styles.icon}>{getIcon(toast.type)}</span>
           <span className={styles.message}>{toast.message}</span>
         </div>
       ))}
