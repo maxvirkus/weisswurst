@@ -2,8 +2,14 @@ import React, { useRef, useState, useCallback, useEffect, useMemo } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import type { ThreeEvent } from '@react-three/fiber';
 import { Environment, useGLTF } from '@react-three/drei';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import * as THREE from 'three';
 import styles from './WurstScene.module.css';
+
+// Configure Draco loader for compressed GLB files
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+dracoLoader.preload();
 
 interface WurstSceneProps {
   hasActiveColleague: boolean;
@@ -1103,17 +1109,16 @@ function Scene({
   }
 
   const handleClick = useCallback(() => {
-    // If in init mode, check if we have active colleague first
+    // If in init mode, start init animation first
     if (isInitMode) {
       if (!hasActiveColleague) {
         onNoSelection();
         return;
       }
       
-      // Start init animation, then automatically trigger dip animation
       setIsInitMode(false);
       const startTime = Date.now();
-      const duration = 900; // 0.9 seconds for smooth scene transition
+      const duration = 1500;
       
       const animateInit = () => {
         const elapsed = Date.now() - startTime;
@@ -1121,47 +1126,48 @@ function Scene({
         
         setInitAnimationProgress(progress);
         
+        
         if (progress < 1) {
           initAnimationRef.current = requestAnimationFrame(animateInit);
         } else {
           setInitAnimationProgress(1);
-          // After init animation completes, immediately trigger the dip animation
+          // After init completes, trigger dip animation
           if (!isDippingRef.current) {
             isDippingRef.current = true;
             hasCalledCompleteRef.current = false;
             setIsAnimating(true);
             setAnimationProgress(0);
+            
+            const dipStartTime = Date.now();
+            const dipDuration = 1200;
+            
+            const animateDip = () => {
+              const elapsed = Date.now() - dipStartTime;
+              const progress = Math.min(elapsed / dipDuration, 1);
               
-              const dipStartTime = Date.now();
-              const dipDuration = 1200;
+              setAnimationProgress(progress);
               
-              const animateDip = () => {
-                const elapsed = Date.now() - dipStartTime;
-                const progress = Math.min(elapsed / dipDuration, 1);
-                
-                setAnimationProgress(progress);
-                
-                if (progress > 0.45 && progress < 0.75) {
-                  setSenfWave(1 - Math.abs(progress - 0.6) * 5);
-                } else {
-                  setSenfWave(0);
-                }
+              if (progress > 0.45 && progress < 0.75) {
+                setSenfWave(1 - Math.abs(progress - 0.6) * 5);
+              } else {
+                setSenfWave(0);
+              }
 
-                if (progress < 1) {
-                  animationRef.current = requestAnimationFrame(animateDip);
-                } else {
-                  if (!hasCalledCompleteRef.current) {
-                    hasCalledCompleteRef.current = true;
-                    onDipComplete();
-                  }
-                  
-                  setIsAnimating(false);
-                  setAnimationProgress(0);
-                  setSenfWave(0);
-                  isDippingRef.current = false;
+              if (progress < 1) {
+                animationRef.current = requestAnimationFrame(animateDip);
+              } else {
+                if (!hasCalledCompleteRef.current) {
+                  hasCalledCompleteRef.current = true;
+                  onDipComplete();
                 }
-              };
-              
+                
+                setIsAnimating(false);
+                setAnimationProgress(0);
+                setSenfWave(0);
+                isDippingRef.current = false;
+              }
+            };
+            
             animationRef.current = requestAnimationFrame(animateDip);
           }
         }
@@ -1236,13 +1242,14 @@ function Scene({
       // Start init animation, then automatically trigger brezel animation
       setIsInitMode(false);
       const startTime = Date.now();
-      const duration = 900; // 0.9 seconds for smooth scene transition
+      const duration = 1500; // 1.5 seconds for smooth scene transition
       
       const animateInit = () => {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
         setInitAnimationProgress(progress);
+        
         
         if (progress < 1) {
           initAnimationRef.current = requestAnimationFrame(animateInit);
@@ -1615,3 +1622,5 @@ export function WurstScene({
     </div>
   );
 }
+
+export default WurstScene;
