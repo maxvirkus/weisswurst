@@ -20,19 +20,6 @@ export function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
     }
   };
 
-  const getIcon = (type: Toast['type']) => {
-    switch (type) {
-      case 'success':
-        return '✓';
-      case 'error':
-        return '✕';
-      case 'warning':
-        return '⚠';
-      default:
-        return 'ℹ';
-    }
-  };
-
   return (
     <div className={styles.container}>
       {toasts.map((toast) => (

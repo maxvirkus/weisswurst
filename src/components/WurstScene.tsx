@@ -746,18 +746,13 @@ function TellerBrezel({ index, total }: { index: number; total: number }) {
     const cloned = scene.clone();
     cloned.traverse((child) => {
       if (child.type === 'Mesh') {
-        // @ts-expect-error - THREE types
         const mesh = child as THREE.Mesh;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-        // @ts-expect-error - THREE types
-        if (mesh.material?.type === 'MeshBasicMaterial') {
-          // @ts-expect-error - THREE types
-          const oldMat = mesh.material;
+        if (mesh.material && !Array.isArray(mesh.material) && mesh.material.type === 'MeshBasicMaterial') {
+          const oldMat = mesh.material as THREE.MeshBasicMaterial;
           mesh.material = new THREE.MeshStandardMaterial({
-            // @ts-expect-error - THREE types
             color: oldMat.color,
-            // @ts-expect-error - THREE types
             map: oldMat.map,
             roughness: 0.7,
             metalness: 0
