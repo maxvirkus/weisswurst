@@ -381,6 +381,8 @@ function BrezelGLB({
 // Preload GLB
 useGLTF.preload('/pretzel.glb');
 useGLTF.preload('/german_beer_bottle_with_crown_cap.glb');
+useGLTF.preload('/metal_cutlery.glb');
+useGLTF.preload('/plate.glb');
 
 // Erstelle bauchige Senfglas-Geometrie mit LatheGeometry
 // Händlmaier-Stil: Bauch → Schulter → deutlicher Hals → Schraubrand
@@ -783,6 +785,49 @@ function BeerBottle() {
   );
 }
 
+// Besteck (Gabel und Messer)
+function Cutlery() {
+  const { scene } = useGLTF('/metal_cutlery.glb');
+  
+  // Clone für Besteck rechts
+  const cutlery = useMemo(() => {
+    const cloned = scene.clone();
+    cloned.traverse((child) => {
+      if (child.type === 'Mesh') {
+        const mesh = child as THREE.Mesh;
+        const meshName = mesh.name.toLowerCase();
+        
+        // Löffel verstecken
+        if (meshName.includes('spoon') || meshName.includes('löffel') || meshName.includes('loeffel')) {
+          mesh.visible = false;
+        } else {
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          mesh.visible = true;
+          
+          mesh.material = new THREE.MeshPhysicalMaterial({
+            color: '#C0C0C0',
+            roughness: 0.2,
+            metalness: 0.9,
+            clearcoat: 0.3,
+            reflectivity: 0.9
+          });
+        }
+      }
+    });
+    return cloned;
+  }, [scene]);
+  
+  return (
+    <>
+      {/* Besteck rechts vom Teller - größer */}
+      <group position={[1.3, -0.83, -1.0]} rotation={[Math.PI / 2, Math.PI, Math.PI]} scale={3.0}>
+        <primitive object={cutlery} />
+      </group>
+    </>
+  );
+}
+
 // Einzelne Brezel hinter dem Teller
 // Einzelne Brezel hinter dem Teller - GLB Version
 function TellerBrezel({ index, total }: { index: number; total: number }) {
@@ -826,52 +871,10 @@ function TellerBrezel({ index, total }: { index: number; total: number }) {
 }
 
 // Realistische Teller-Geometrie mit LatheGeometry
-function createTellerGeometry(): THREE.LatheGeometry {
-  // Profilkurve für einen flachen Keramikteller
-  // SKALIERT: 1.8x größer für bessere Proportionen
-  const scale = 1.8;
-  const points: THREE.Vector2[] = [];
-  
-  // Bodenmitte (leicht konkav nach innen gewölbt) - Start bei kleinem Radius statt 0
-  points.push(new THREE.Vector2(0.03 * scale, 0.002));     
-  points.push(new THREE.Vector2(0.05 * scale, 0.001));     
-  points.push(new THREE.Vector2(0.12 * scale, 0));          
-  points.push(new THREE.Vector2(0.20 * scale, 0.001));     
-  
-  // Übergang zum Rand (sanfte Kurve nach oben)
-  points.push(new THREE.Vector2(0.28 * scale, 0.003));     
-  points.push(new THREE.Vector2(0.33 * scale, 0.008));     
-  points.push(new THREE.Vector2(0.36 * scale, 0.015));     
-  
-  // Erhöhter Rand (Lip) - typisch für Weißwurstteller
-  points.push(new THREE.Vector2(0.38 * scale, 0.025));     
-  points.push(new THREE.Vector2(0.39 * scale, 0.032));     
-  points.push(new THREE.Vector2(0.395 * scale, 0.036));    
-  
-  // Außenkante (leicht abgerundet)
-  points.push(new THREE.Vector2(0.40 * scale, 0.034));     
-  points.push(new THREE.Vector2(0.40 * scale, 0.028));     
-  
-  // Unterseite
-  points.push(new THREE.Vector2(0.38 * scale, 0.020));     
-  points.push(new THREE.Vector2(0.35 * scale, 0.008));     
-  points.push(new THREE.Vector2(0.30 * scale, 0.003));     
-  
-  // Standring (typisch für Keramikteller)
-  points.push(new THREE.Vector2(0.25 * scale, 0.002));     
-  points.push(new THREE.Vector2(0.25 * scale, 0));          
-  points.push(new THREE.Vector2(0.20 * scale, 0));          
-  points.push(new THREE.Vector2(0.20 * scale, 0.001));     
-  points.push(new THREE.Vector2(0.05 * scale, 0.001));     
-  
-  const geometry = new THREE.LatheGeometry(points, 64);
-  geometry.computeVertexNormals();
-  
-  return geometry;
-}
-
 // Teller mit Würsten und Brezeln
 function Teller({ wurstCount, brezelCount }: { wurstCount: number; brezelCount: number }) {
+  const { scene } = useGLTF('/plate.glb');
+  
   // Maximal 6 Würste auf dem Teller anzeigen
   const displayCount = Math.min(wurstCount, 6);
   // Maximal 6 Brezeln hinter dem Teller anzeigen
@@ -882,54 +885,51 @@ function Teller({ wurstCount, brezelCount }: { wurstCount: number; brezelCount: 
   const tableTop = -0.9;
   const tellerY = tableTop + 0.02; // Höher positioniert
   
-  // Keramik-Material (einmal definieren)
-  const ceramicColor = '#F5F5F5';  // Warmes Off-White
-  
-  // Memoized Geometrie
-  const tellerGeom = React.useMemo(() => createTellerGeometry(), []);
+  // Clone scene und konvertiere Materials
+  const clonedScene = useMemo(() => {
+    const cloned = scene.clone();
+    cloned.traverse((child) => {
+      if (child.type === 'Mesh') {
+        const mesh = child as THREE.Mesh;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        if (mesh.material && !Array.isArray(mesh.material) && mesh.material.type === 'MeshBasicMaterial') {
+          const oldMat = mesh.material as THREE.MeshBasicMaterial;
+          mesh.material = new THREE.MeshPhysicalMaterial({
+            color: oldMat.color,
+            map: oldMat.map,
+            roughness: 0.22,
+            metalness: 0,
+            clearcoat: 0.2,
+            clearcoatRoughness: 0.2
+          });
+        }
+      }
+    });
+    return cloned;
+  }, [scene]);
   
   return (
-    <group position={[0, tellerY, -1.3]} scale={1.5}>
-      {/* Hauptteller - LatheGeometry für realistische Form */}
-      <mesh 
-        geometry={tellerGeom}
-        receiveShadow 
-        castShadow
-      >
-        <meshPhysicalMaterial 
-          color={ceramicColor}
-          roughness={0.22}
-          metalness={0}
-          clearcoat={0.2}
-          clearcoatRoughness={0.2}
-          envMapIntensity={0.5}
-        />
-      </mesh>
+    <>
+      {/* Teller GLB - größer */}
+      <group position={[0, tellerY, -1.3]} scale={3.0}>
+        <primitive object={clonedScene} />
+      </group>
       
-      {/* Boden-Füllung um schwarzes Loch in der Mitte zu vermeiden */}
-      <mesh position={[0, 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.05 * 1.8, 32]} />
-        <meshPhysicalMaterial 
-          color={ceramicColor}
-          roughness={0.22}
-          metalness={0}
-          clearcoat={0.2}
-          clearcoatRoughness={0.2}
-        />
-      </mesh>
-      
-      {/* Würste auf dem Teller - höher positioniert */}
-      <group position={[0, 0.01, 0]}>
+      {/* Würste auf dem Teller - separate Group mit Original-Scale */}
+      <group position={[0, tellerY + 0.01, -1.4]} scale={1.5}>
         {[...Array(displayCount)].map((_, i) => (
           <TellerWurst key={i} index={i} total={displayCount} />
         ))}
       </group>
       
-      {/* Brezeln hinter dem Teller */}
-      {[...Array(displayBrezelCount)].map((_, i) => (
-        <TellerBrezel key={`brezel-${i}`} index={i} total={displayBrezelCount} />
-      ))}
-    </group>
+      {/* Brezeln hinter dem Teller - separate Group mit Original-Scale */}
+      <group position={[0, tellerY, -1.5]} scale={1.5}>
+        {[...Array(displayBrezelCount)].map((_, i) => (
+          <TellerBrezel key={`brezel-${i}`} index={i} total={displayBrezelCount} />
+        ))}
+      </group>
+    </>
   );
 }
 
@@ -1385,6 +1385,7 @@ function Scene({
           <Senfglas senfWave={senfWave} />
           <Teller wurstCount={wurstCount} brezelCount={brezelCount} />
           <BeerBottle />
+          <Cutlery />
           <WoodTable />
         </group>
       )}
