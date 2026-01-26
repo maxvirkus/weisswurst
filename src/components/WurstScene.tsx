@@ -13,6 +13,7 @@ interface WurstSceneProps {
   onDipComplete: () => void;
   onBrezelComplete: () => void;
   onNoSelection: () => void;
+  onBeerClick?: () => void;
 }
 
 // Weißwurst Component
@@ -748,8 +749,9 @@ function TellerWurst({ index, total }: { index: number; total: number }) {
 }
 
 // Bier-Flasche als Deko
-function BeerBottle() {
+function BeerBottle({ onClick }: { onClick?: () => void }) {
   const { scene } = useGLTF('/german_beer_bottle_with_crown_cap.glb');
+  const [hovered, setHovered] = useState(false);
   
   // Clone scene und konvertiere Materials
   const clonedScene = useMemo(() => {
@@ -779,7 +781,17 @@ function BeerBottle() {
   }, [scene]);
   
   return (
-    <group position={[1.3, -0.85, -2.0]} rotation={[0, -0.4, 0]} scale={5.0}>
+    <group 
+      position={[1.3, -0.85, -2.0]} 
+      rotation={[0, -0.4, 0]} 
+      scale={hovered ? 5.1 : 5.0}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+    >
       <primitive object={clonedScene} />
     </group>
   );
@@ -883,7 +895,7 @@ function Teller({ wurstCount, brezelCount }: { wurstCount: number; brezelCount: 
   // Tischoberkante ist bei y = -0.9
   // Teller sitzt etwas höher auf dem Tisch
   const tableTop = -0.9;
-  const tellerY = tableTop + 0.02; // Höher positioniert
+  const tellerY = tableTop + 0.12; // Höher positioniert
   
   // Clone scene und konvertiere Materials
   const clonedScene = useMemo(() => {
@@ -896,7 +908,7 @@ function Teller({ wurstCount, brezelCount }: { wurstCount: number; brezelCount: 
         if (mesh.material && !Array.isArray(mesh.material) && mesh.material.type === 'MeshBasicMaterial') {
           const oldMat = mesh.material as THREE.MeshBasicMaterial;
           mesh.material = new THREE.MeshPhysicalMaterial({
-            color: oldMat.color,
+            color: 0xffffff, // Weiß statt alte Farbe
             map: oldMat.map,
             roughness: 0.22,
             metalness: 0,
@@ -1021,7 +1033,8 @@ function Scene({
   brezelCount,
   onDipComplete, 
   onBrezelComplete,
-  onNoSelection 
+  onNoSelection,
+  onBeerClick
 }: { 
   hasActiveColleague: boolean;
   wurstCount: number;
@@ -1029,6 +1042,7 @@ function Scene({
   onDipComplete: () => void;
   onBrezelComplete: () => void;
   onNoSelection: () => void;
+  onBeerClick?: () => void;
 }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isBrezelAnimating, setIsBrezelAnimating] = useState(false);
@@ -1384,7 +1398,7 @@ function Scene({
         >
           <Senfglas senfWave={senfWave} />
           <Teller wurstCount={wurstCount} brezelCount={brezelCount} />
-          <BeerBottle />
+          <BeerBottle onClick={onBeerClick} />
           <Cutlery />
           <WoodTable />
         </group>
@@ -1518,7 +1532,8 @@ export function WurstScene({
   brezelCount,
   onDipComplete,
   onBrezelComplete,
-  onNoSelection 
+  onNoSelection,
+  onBeerClick
 }: WurstSceneProps) {
   const [webGLSupported, setWebGLSupported] = useState<boolean | null>(null);
 
@@ -1572,7 +1587,7 @@ export function WurstScene({
         }}
         dpr={typeof window !== 'undefined' && window.innerWidth < 640 ? [1, 1.5] : [1, 2]}
         onCreated={({ gl }) => {
-          gl.setClearColor(new THREE.Color('#e5e7eb'));
+          gl.setClearColor(new THREE.Color('#E8F0F7'));
           // Soft shadows aktivieren
           gl.shadowMap.enabled = true;
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1585,6 +1600,7 @@ export function WurstScene({
           onDipComplete={onDipComplete}
           onBrezelComplete={onBrezelComplete}
           onNoSelection={onNoSelection}
+          onBeerClick={onBeerClick}
         />
       </Canvas>
       

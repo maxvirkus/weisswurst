@@ -36,7 +36,7 @@
 .checkBadge {
   position: absolute;
   top: -0.5rem;
-  right: -0.5rem;
+  right: 0;
   width: 1.5rem;
   height: 1.5rem;
   background-color: var(--color-amber-500);

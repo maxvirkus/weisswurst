@@ -1,36 +1,25 @@
-/* ===== Bavarian Diamond Background - Echte Rauten ===== */
+/* ===== Bavarian Diamond Background - Echtes Bayern-Muster ===== */
 .background {
   /* === ANPASSBARE PARAMETER === */
-  --tile-size: 100px;              /* Rautengröße: 80-120px */
-  --bavaria-blue: #2F6FB6;         /* Bayern-Blau (leicht entsättigt) */
-  --bavaria-white: #F7FBFF;        /* Off-White */
-  --scrim-opacity: 0.25;           /* Overlay-Transparenz: 0.2-0.4 */
+  --pattern-size: 700px;           /* Größe des Pattern-Tiles */
+  --scrim-opacity: 0.3;            /* Overlay-Transparenz: 0.25-0.4 */
   
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  overflow: hidden;
+  /* Verhindert dass das Element über den Viewport hinausragt */
+  clip-path: inset(0);
 }
 
-/* Layer 1: Echtes Diamond/Rauten-Pattern */
+/* Layer 1: Bayern-Flaggen-Muster (Bild) */
 .pattern {
   position: absolute;
   inset: 0;
-  
-  /* 
-   * conic-gradient erzeugt echte Rauten (Schachbrett-Muster):
-   * - Startet bei 45° für diagonale Ausrichtung
-   * - 4 Segmente à 90°: Blau, Weiß, Blau, Weiß
-   */
-  background: conic-gradient(
-    from 45deg,
-    var(--bavaria-blue) 0deg 90deg,
-    var(--bavaria-white) 90deg 180deg,
-    var(--bavaria-blue) 180deg 270deg,
-    var(--bavaria-white) 270deg 360deg
-  );
-  background-size: var(--tile-size) var(--tile-size);
+  background-image: url('/bavarian-pattern.jpg');
+  background-size: var(--pattern-size);
+  background-repeat: repeat;
+  background-position: top left;
 }
 
 /* Layer 2: Dezentes weißes Scrim für bessere Lesbarkeit */

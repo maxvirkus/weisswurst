@@ -9,7 +9,6 @@ import { ModeToggle } from './components/ModeToggle';
 import { PriceInput } from './components/PriceInput';
 import { WurstScene } from './components/WurstScene';
 import { ToastContainer } from './components/ToastContainer';
-import BavarianBackground from './components/BavarianBackground';
 import styles from './App.module.css';
 
 const initialState: AppState = {
@@ -69,6 +68,10 @@ function App() {
     showToast('Erst einen Namen auswählen!', 'warning');
   }, [showToast]);
 
+  const handleBeerClick = useCallback(() => {
+    showToast('Natürlich alkoholfrei', 'info');
+  }, [showToast]);
+
   const handleOutsideClick = useCallback((e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     // Deselektiere nur wenn außerhalb des Kollegen-Bereichs UND der Szene geklickt wird
@@ -79,7 +82,6 @@ function App() {
 
   return (
     <>
-      <BavarianBackground />
       <div className={styles.container} onClick={handleOutsideClick}>
         <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       
@@ -115,6 +117,7 @@ function App() {
                   onDipComplete={handleDipComplete}
                   onBrezelComplete={handleBrezelComplete}
                   onNoSelection={handleNoSelection}
+                  onBeerClick={handleBeerClick}
                 />
               </div>
             </div>
