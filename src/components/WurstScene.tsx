@@ -65,6 +65,9 @@ const ANIMATION_DURATIONS = {
   brezel: 800,     // Brezel spin animation
 } as const;
 
+// Check if mobile
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
 // ============================================================
 // Camera Animation Component
 // ============================================================
@@ -72,10 +75,21 @@ const ANIMATION_DURATIONS = {
 function CameraAnimation({ progress }: { progress: number }) {
   const { camera } = useThree();
   
+  // Mobile vs Desktop camera positions
+  const mobilePos = {
+    start: { x: 0, y: 2.2, z: 4.5 },
+    end: { x: 0, y: 2.0, z: 5.5 }
+  };
+  const desktopPos = {
+    start: { x: 0, y: 1.8, z: 3.5 },
+    end: { x: 0, y: 1.5, z: 4 }
+  };
+  const positions = isMobile ? mobilePos : desktopPos;
+  
   useFrame(() => {
     if (progress === 0) {
       // Initial position - show both wurst and brezel centered
-      camera.position.set(0, 1.8, 3.5);
+      camera.position.set(positions.start.x, positions.start.y, positions.start.z);
       camera.lookAt(0, 0, 0.8);
     } else if (progress < 1) {
       // Smooth transition with ease-in-out cubic
@@ -83,12 +97,9 @@ function CameraAnimation({ progress }: { progress: number }) {
       const easeT = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       
       // Interpolate position
-      const startPos = { x: 0, y: 1.8, z: 3.5 };
-      const endPos = { x: 0, y: 1.5, z: 4 };
-      
-      camera.position.x = startPos.x + (endPos.x - startPos.x) * easeT;
-      camera.position.y = startPos.y + (endPos.y - startPos.y) * easeT;
-      camera.position.z = startPos.z + (endPos.z - startPos.z) * easeT;
+      camera.position.x = positions.start.x + (positions.end.x - positions.start.x) * easeT;
+      camera.position.y = positions.start.y + (positions.end.y - positions.start.y) * easeT;
+      camera.position.z = positions.start.z + (positions.end.z - positions.start.z) * easeT;
       
       // Interpolate lookAt target
       const startLookAt = { x: 0, y: 0, z: 0.8 };
@@ -101,7 +112,7 @@ function CameraAnimation({ progress }: { progress: number }) {
       );
     } else {
       // Final position
-      camera.position.set(0, 1.5, 4);
+      camera.position.set(positions.end.x, positions.end.y, positions.end.z);
       camera.lookAt(0, 0, 0);
     }
   });
@@ -488,8 +499,10 @@ export function WurstScene({
       <Canvas
         shadows="soft"
         camera={{ 
-          position: [0, 1.5, 4], 
-          fov: typeof window !== 'undefined' && window.innerWidth < 640 ? 50 : 40 
+          position: typeof window !== 'undefined' && window.innerWidth < 640 
+            ? [0, 2.0, 5.5]  // Mobile: weiter weg und höher für bessere Übersicht
+            : [0, 1.5, 4], 
+          fov: typeof window !== 'undefined' && window.innerWidth < 640 ? 55 : 40 
         }}
         gl={{ 
           antialias: true,

@@ -23,14 +23,18 @@
 
 .cardActive {
   border-color: var(--color-amber-500);
-  background-color: rgba(255, 251, 235, 0.9);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  background-color: rgba(253, 248, 243, 0.9);
+  box-shadow: 0 4px 12px rgba(139, 90, 43, 0.2);
 }
 
 .cardActive:hover {
   border-color: var(--color-amber-600);
-  background-color: rgba(255, 251, 235, 1);
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+  background-color: rgba(253, 248, 243, 1);
+  box-shadow: 0 4px 16px rgba(139, 90, 43, 0.3);
+}
+
+.cardHighlighted {
+  font-weight: 500;
 }
 
 .checkBadge {
@@ -84,7 +88,7 @@
 
 .nameInput:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 0 0 3px rgba(139, 90, 43, 0.2);
 }
 
 .name {

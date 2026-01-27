@@ -15,6 +15,8 @@ interface ColleagueCardProps {
   onDecrementWurst: () => void;
   onDecrementBrezel: () => void;
   onReset: () => void;
+  readOnly?: boolean;
+  highlighted?: boolean;
 }
 
 export function ColleagueCard({
@@ -29,6 +31,8 @@ export function ColleagueCard({
   onDecrementWurst,
   onDecrementBrezel,
   onReset,
+  readOnly = false,
+  highlighted = false,
 }: ColleagueCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(colleague.name);
@@ -60,11 +64,11 @@ export function ColleagueCard({
 
   return (
     <div
-      className={`${styles.card} ${isActive ? styles.cardActive : ''}`}
+      className={`${styles.card} ${isActive ? styles.cardActive : ''} ${highlighted ? styles.cardHighlighted : ''}`}
       onClick={(e) => {
         // Nur wenn nicht auf Button oder Input geklickt wurde
         const target = e.target as HTMLElement;
-        if (!target.closest('button') && !target.closest('input') && !isEditing) {
+        if (!target.closest('button') && !target.closest('input') && !isEditing && !readOnly) {
           onSelect();
         }
       }}
@@ -72,7 +76,7 @@ export function ColleagueCard({
       <div className={styles.content}>
         <div className={styles.topRow}>
           <div className={styles.info}>
-            {isEditing ? (
+            {isEditing && !readOnly ? (
               <input
                 type="text"
                 value={editName}
@@ -87,11 +91,12 @@ export function ColleagueCard({
               <h3 
                 className={styles.name}
                 onDoubleClick={(e) => {
+                  if (readOnly) return;
                   e.stopPropagation();
                   setIsEditing(true);
                   setEditName(colleague.name);
                 }}
-                title="Doppelklick zum Bearbeiten"
+                title={readOnly ? undefined : "Doppelklick zum Bearbeiten"}
               >
                 {colleague.name}
               </h3>
@@ -113,19 +118,21 @@ export function ColleagueCard({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={(e) => handleDelete(e)}
-            className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-            title="Löschen"
-          >
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={(e) => handleDelete(e)}
+              className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+              title="Löschen"
+            >
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          )}
         </div>
 
-        {isActive && (colleague.count > 0 || (colleague.brezelCount || 0) > 0) && (
+        {!readOnly && isActive && (colleague.count > 0 || (colleague.brezelCount || 0) > 0) && (
           <div className={styles.actionRow}>
             {colleague.count > 0 && (
               <button

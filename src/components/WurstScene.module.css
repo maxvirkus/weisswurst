@@ -80,14 +80,18 @@
 }
 
 .loading {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg-input);
+  background: linear-gradient(180deg, #F0F4F8 0%, #E8F0F7 100%);
 }
 
 .loadingText {
-  color: var(--color-text-muted);
+  color: #6b7280;
+  font-size: 1rem;
 }

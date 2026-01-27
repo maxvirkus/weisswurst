@@ -25,6 +25,7 @@ const initialState: AppState = {
 function App() {
   const [state, setState] = useLocalStorageState<AppState>(STORAGE_KEY, initialState);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [isColleaguesCollapsed, setIsColleaguesCollapsed] = useState(false);
 
   const showToast = useCallback((message: string, type: Toast['type'] = 'info') => {
     const id = uuidv4();
@@ -160,18 +161,28 @@ function App() {
           </div>
 
           {/* Right Column */}
-          <div className={styles.rightColumn} data-colleague-area onClick={(e) => e.stopPropagation()}>
+          <div className={styles.rightColumn} data-colleague-area>
             <div className={styles.colleagueCard}>
-              <div className={styles.colleagueHeader}>
+              <button 
+                type="button"
+                className={styles.colleagueHeader}
+                onClick={() => setIsColleaguesCollapsed(prev => !prev)}
+              >
                 <h2 className={styles.colleagueTitle}>
                   <span className="truncate">Kolleg:innen</span>
                 </h2>
-                <span className={styles.colleagueCount}>
-                  {state.colleagues.length}
-                </span>
-              </div>
+                <div className={styles.colleagueHeaderRight}>
+                  <span className={styles.colleagueCount}>
+                    {state.colleagues.length}
+                  </span>
+                  <span className={`${styles.collapseIcon} ${isColleaguesCollapsed ? styles.collapsed : ''}`}>
+                    ▼
+                  </span>
+                </div>
+              </button>
               
-              <div className={styles.colleagueList}>
+              {!isColleaguesCollapsed && (
+                <div className={styles.colleagueList} onClick={(e) => e.stopPropagation()}>
                 <ColleagueList 
                   colleagues={state.colleagues}
                   activeColleagueId={state.activeColleagueId}
@@ -184,6 +195,7 @@ function App() {
                   onSortModeChange={(sortMode) => setState((prev) => ({ ...prev, sortMode }))}
                 />
               </div>
+              )}
             </div>
           </div>
         </div>

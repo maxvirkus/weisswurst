@@ -48,6 +48,13 @@ export function useLocalStorageState<T extends AppState>(
     try {
       const stored = localStorage.getItem(key);
       if (stored) {
+        // Limit stored data size to prevent DoS via localStorage
+        if (stored.length > 500000) {
+          console.warn('localStorage data too large, resetting');
+          localStorage.removeItem(key);
+          return { ...initialValue, schemaVersion: SCHEMA_VERSION };
+        }
+        
         const parsed = JSON.parse(stored) as Partial<T>;
         
         // Run migrations
@@ -58,6 +65,8 @@ export function useLocalStorageState<T extends AppState>(
       }
     } catch (error) {
       console.error('Error reading from localStorage:', error);
+      // Clear corrupted data
+      localStorage.removeItem(key);
     }
     return { ...initialValue, schemaVersion: SCHEMA_VERSION };
   });

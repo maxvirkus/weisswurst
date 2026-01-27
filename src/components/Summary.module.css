@@ -1,9 +1,9 @@
 .card {
   padding: 1.25rem;
-  background: linear-gradient(135deg, rgba(255, 251, 235, 0.9) 0%, rgba(254, 243, 199, 0.85) 100%);
+  background: linear-gradient(135deg, rgba(253, 248, 243, 0.9) 0%, rgba(245, 230, 216, 0.85) 100%);
   backdrop-filter: blur(8px);
   border-radius: var(--radius-2xl);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid rgba(139, 90, 43, 0.3);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -18,7 +18,7 @@
 .title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #92400e;
+  color: #5c3015;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -72,7 +72,7 @@
 
 .divider {
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(245, 158, 11, 0.3);
+  border-top: 1px solid rgba(139, 90, 43, 0.3);
 }
 
 .dark .divider {
@@ -87,7 +87,7 @@
 .senfSection {
   margin-top: 0.5rem;
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(245, 158, 11, 0.2);
+  border-top: 1px solid rgba(139, 90, 43, 0.2);
 }
 
 .senfDetails {

@@ -4,6 +4,9 @@ import { ColleagueCard } from './ColleagueCard';
 import { v4 as uuidv4 } from 'uuid';
 import styles from './ColleagueList.module.css';
 
+// Security constants
+const MAX_NAME_LENGTH = 50;
+
 interface ColleagueListProps {
   colleagues: Colleague[];
   activeColleagueId: string | null;
@@ -14,6 +17,18 @@ interface ColleagueListProps {
   onColleaguesChange: (colleagues: Colleague[]) => void;
   onActiveChange: (id: string | null) => void;
   onSortModeChange: (mode: SortMode) => void;
+  readOnly?: boolean;
+  highlightId?: string;
+  showJoinForm?: boolean;
+  joinFormProps?: {
+    inputValue: string;
+    onInputChange: (value: string) => void;
+    onJoin: () => void;
+    isJoining: boolean;
+  };
+  onDecrementWurst?: (id: string) => void;
+  onDecrementBrezel?: (id: string) => void;
+  onReset?: (id: string) => void;
 }
 
 export function ColleagueList({
@@ -26,6 +41,13 @@ export function ColleagueList({
   onColleaguesChange,
   onActiveChange,
   onSortModeChange,
+  readOnly = false,
+  highlightId,
+  showJoinForm = false,
+  joinFormProps,
+  onDecrementWurst,
+  onDecrementBrezel,
+  onReset,
 }: ColleagueListProps) {
   const [newName, setNewName] = useState('');
 
@@ -40,7 +62,7 @@ export function ColleagueList({
   }, [colleagues, sortMode]);
 
   const handleAdd = () => {
-    const trimmedName = newName.trim();
+    const trimmedName = newName.trim().slice(0, MAX_NAME_LENGTH);
     if (!trimmedName) return;
 
     const newColleague: Colleague = {
@@ -106,14 +128,47 @@ export function ColleagueList({
 
   return (
     <div className={styles.container}>
+      {/* Join form for session participants */}
+      {showJoinForm && joinFormProps && (
+        <div className={styles.inputRow}>
+          <input
+            type="text"
+            value={joinFormProps.inputValue}
+            onChange={(e) => joinFormProps.onInputChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && joinFormProps.inputValue.trim()) {
+                joinFormProps.onJoin();
+              }
+            }}
+            placeholder="Dein Name"
+            className={styles.input}
+          />
+          <button
+            onClick={joinFormProps.onJoin}
+            disabled={!joinFormProps.inputValue.trim() || joinFormProps.isJoining}
+            className={styles.addButton}
+            aria-label="Beitreten"
+          >
+            {joinFormProps.isJoining ? '...' : (
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Add new colleague */}
-      <div className={styles.inputRow}>
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Name eingeben..."
+      {!readOnly && !showJoinForm && (
+        <div className={styles.inputRow}>
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value.slice(0, MAX_NAME_LENGTH))}
+            onKeyDown={handleKeyDown}
+            placeholder="Name eingeben..."
+            maxLength={MAX_NAME_LENGTH}
+            autoComplete="off"
           className={styles.input}
         />
         <button
@@ -127,24 +182,27 @@ export function ColleagueList({
           </svg>
         </button>
       </div>
+      )}
 
       {/* Sort toggle */}
-      <div className={styles.sortRow}>
-        <span className={styles.personCount}>
-          {colleagues.length} {colleagues.length === 1 ? 'Person' : 'Personen'}
-        </span>
-        <button
-          onClick={() =>
-            onSortModeChange(sortMode === 'alphabetical' ? 'count' : 'alphabetical')
-          }
-          className={styles.sortButton}
-        >
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-          </svg>
-          <span>{sortMode === 'alphabetical' ? 'A-Z' : 'Anzahl'}</span>
-        </button>
-      </div>
+      {!readOnly && (
+        <div className={styles.sortRow}>
+          <span className={styles.personCount}>
+            {colleagues.length} {colleagues.length === 1 ? 'Person' : 'Personen'}
+          </span>
+          <button
+            onClick={() =>
+              onSortModeChange(sortMode === 'alphabetical' ? 'count' : 'alphabetical')
+            }
+            className={styles.sortButton}
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+            <span>{sortMode === 'alphabetical' ? 'A-Z' : 'Anzahl'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Colleague list */}
       <div className={styles.list}>
@@ -166,9 +224,11 @@ export function ColleagueList({
               onSelect={() => onActiveChange(colleague.id)}
               onEdit={(name) => handleEdit(colleague.id, name)}
               onDelete={() => handleDelete(colleague.id)}
-              onDecrementWurst={() => handleDecrementWurst(colleague.id)}
-              onDecrementBrezel={() => handleDecrementBrezel(colleague.id)}
-              onReset={() => handleReset(colleague.id)}
+              onDecrementWurst={() => onDecrementWurst ? onDecrementWurst(colleague.id) : handleDecrementWurst(colleague.id)}
+              onDecrementBrezel={() => onDecrementBrezel ? onDecrementBrezel(colleague.id) : handleDecrementBrezel(colleague.id)}
+              onReset={() => onReset ? onReset(colleague.id) : handleReset(colleague.id)}
+              readOnly={readOnly}
+              highlighted={colleague.id === highlightId}
             />
           ))
         )}
