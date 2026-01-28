@@ -258,7 +258,6 @@ export function AdminPage() {
     return (
       <div className={styles.errorContainer}>
         <div className={styles.errorCard}>
-          <div className={styles.errorIcon}>🔐</div>
           <h1>{error || 'Zugriff verweigert'}</h1>
           <p className={styles.errorHint}>
             Stelle sicher, dass du den korrekten Admin-Link verwendest.
@@ -286,7 +285,6 @@ export function AdminPage() {
             </Link>
             <div className={styles.titleCenter}>
               <h1 className={styles.title}>Admin</h1>
-              <span className={styles.adminBadge}>🔐</span>
             </div>
           </div>
         </div>
@@ -302,10 +300,10 @@ export function AdminPage() {
             </h2>
             <div className={styles.statusRow}>
               <span className={`${styles.statusBadge} ${isClosed ? styles.statusClosed : styles.statusOpen}`}>
-                {isClosed ? '🔒 Geschlossen' : '✅ Offen'}
+                {isClosed ? 'Geschlossen' : 'Offen'}
               </span>
               <span className={styles.modeBadge}>
-                {session.mode === 'INVITE' ? '🎁 Einladung' : '💰 Splitten'}
+                {session.mode === 'INVITE' ? 'Einladung' : 'Splitten'}
               </span>
             </div>
 
@@ -323,8 +321,11 @@ export function AdminPage() {
                 <button
                   onClick={() => copyToClipboard(participantLink)}
                   className={styles.copyButton}
+                  aria-label="Kopieren"
                 >
-                  📋
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -336,8 +337,11 @@ export function AdminPage() {
                 <button
                   onClick={() => copyToClipboard(adminLink)}
                   className={styles.copyButton}
+                  aria-label="Kopieren"
                 >
-                  📋
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -353,7 +357,7 @@ export function AdminPage() {
                   disabled={isClosing}
                   className={styles.actionButton}
                 >
-                  {isClosing ? '...' : '🔓 Wieder öffnen'}
+                  {isClosing ? '...' : 'Wieder öffnen'}
                 </button>
               ) : (
                 <button
@@ -361,12 +365,12 @@ export function AdminPage() {
                   disabled={isClosing}
                   className={styles.actionButton}
                 >
-                  {isClosing ? '...' : '🔒 Einstand schließen'}
+                  {isClosing ? '...' : 'Einstand schließen'}
                 </button>
               )}
 
               <Link to={`/s/${session.id}`} className={styles.actionButtonLink}>
-                👀 Teilnehmer-Ansicht
+                Teilnehmer-Ansicht
               </Link>
 
               {!showDeleteConfirm ? (
@@ -374,7 +378,7 @@ export function AdminPage() {
                   onClick={() => setShowDeleteConfirm(true)}
                   className={styles.deleteButton}
                 >
-                  🗑️ Einstand löschen
+                  Einstand löschen
                 </button>
               ) : (
                 <div className={styles.deleteConfirm}>
@@ -408,16 +412,16 @@ export function AdminPage() {
                 <span className={styles.statValue}>{entries.length}</span>
               </div>
               <div className={styles.stat}>
-                <span className={styles.statLabel}>🌭 Würste</span>
+                <span className={styles.statLabel}>Würste</span>
                 <span className={styles.statValue}>{totals.totalWurst}</span>
               </div>
               <div className={styles.stat}>
-                <span className={styles.statLabel}>🥨 Brezeln</span>
+                <span className={styles.statLabel}>Brezeln</span>
                 <span className={styles.statValue}>{totals.totalPretzel}</span>
               </div>
               {session.mode === 'SPLIT' && (
                 <div className={styles.stat}>
-                  <span className={styles.statLabel}>💰 Gesamt</span>
+                  <span className={styles.statLabel}>Gesamt</span>
                   <span className={styles.statValue}>
                     {totals.totalCost.toFixed(2)} €
                   </span>
@@ -435,8 +439,8 @@ export function AdminPage() {
                   <thead>
                     <tr>
                       <th>Name</th>
-                      <th>🌭</th>
-                      <th>🥨</th>
+                      <th>Würste</th>
+                      <th>Brezeln</th>
                       {session.mode === 'SPLIT' && <th>Betrag</th>}
                     </tr>
                   </thead>
@@ -482,7 +486,7 @@ export function AdminPage() {
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
-          <p>Made with 🥨 in Bayern • Servus!</p>
+          <p>Made in Bayern • Servus!</p>
         </div>
       </footer>
     </div>
