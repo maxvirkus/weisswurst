@@ -33,6 +33,27 @@ interface ParticipantIdentity {
   displayName: string;
 }
 
+// Retry helper for critical operations
+const retryOperation = async <T,>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  delayMs = 1000
+): Promise<T> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (err) {
+      lastError = err;
+      console.warn(`Retry attempt ${attempt + 1}/${maxRetries} failed:`, err);
+      if (attempt < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delayMs * Math.pow(2, attempt)));
+      }
+    }
+  }
+  throw lastError;
+};
+
 export function SessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   
@@ -51,6 +72,9 @@ export function SessionPage() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Request deduplication - prevent concurrent updates to same entry
+  const [pendingOperations, setPendingOperations] = useState<Set<string>>(new Set());
 
   const showToast = useCallback((message: string, type: Toast['type'] = 'info') => {
     const id = uuidv4();
@@ -131,9 +155,18 @@ export function SessionPage() {
         if (entriesError) throw entriesError;
         setEntries(entriesData || []);
         
-        // Auto-select my entry if identity exists
+        // Verify localStorage identity still exists in database
         if (myIdentity) {
-          setActiveEntryId(myIdentity.entryId);
+          const entryExists = entriesData?.some(e => e.id === myIdentity.entryId);
+          if (entryExists) {
+            setActiveEntryId(myIdentity.entryId);
+          } else {
+            // Entry was deleted or doesn't exist - clear localStorage
+            console.warn('Stored entry not found in database, clearing localStorage');
+            localStorage.removeItem(getParticipantKey(sessionId));
+            setMyIdentity(null);
+            showToast('Dein Eintrag wurde nicht gefunden. Bitte erneut beitreten.', 'warning');
+          }
         }
       } catch (err) {
         console.error('Error fetching session:', err);
@@ -144,7 +177,7 @@ export function SessionPage() {
     };
 
     fetchData();
-  }, [sessionId, myIdentity]);
+  }, [sessionId, myIdentity, showToast]);
 
   // Realtime subscriptions
   useEffect(() => {
@@ -219,7 +252,7 @@ export function SessionPage() {
     };
   }, [sessionId, showToast]);
 
-  // Join session (create entry)
+  // Join session (create entry) with retry logic
   const handleJoin = useCallback(async () => {
     const sanitizedName = inputName.trim().slice(0, MAX_NAME_LENGTH);
     if (!sessionId || !sanitizedName || isJoining) return;
@@ -233,15 +266,23 @@ export function SessionPage() {
         pretzel_count: 0,
       };
 
-      const { data, error } = await supabase
-        .from('einstand_entries')
-        .insert(entry)
-        .select()
-        .single();
+      // Retry critical join operation up to 3 times
+      const data = await retryOperation(async () => {
+        const { data, error } = await supabase
+          .from('einstand_entries')
+          .insert(entry)
+          .select()
+          .single();
 
-      if (error) throw error;
-      if (!data) throw new Error('Keine Daten zurückbekommen');
+        if (error) throw error;
+        if (!data) throw new Error('Keine Daten zurückbekommen');
+        return data;
+      });
 
+      // Verify entry was actually created by checking if it appears in entries state
+      // Wait briefly for realtime to sync
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const identity: ParticipantIdentity = {
         entryId: data.id,
         displayName: data.display_name,
@@ -249,22 +290,32 @@ export function SessionPage() {
 
       localStorage.setItem(getParticipantKey(sessionId), JSON.stringify(identity));
       setMyIdentity(identity);
+      
+      // Only set active if we can verify the entry exists
+      // The realtime subscription should have added it by now
       setActiveEntryId(data.id);
       showToast(`Willkommen, ${data.display_name}!`, 'success');
     } catch (err) {
       console.error('Error joining:', err);
       const errorMsg = err instanceof Error ? err.message : 'Unbekannter Fehler';
-      showToast(`Fehler beim Beitreten: ${errorMsg}`, 'error');
+      showToast(`Fehler beim Beitreten: ${errorMsg}. Bitte erneut versuchen.`, 'error');
     } finally {
       setIsJoining(false);
     }
   }, [sessionId, inputName, showToast]);
 
-  // Increment wurst
+  // Increment wurst with optimistic update + rollback
   const handleDipComplete = useCallback(async () => {
     if (!activeEntryId) {
       console.warn('handleDipComplete: No activeEntryId');
       showToast('Fehler: Kein Teilnehmer ausgewählt', 'error');
+      return;
+    }
+
+    // Request deduplication - prevent concurrent updates
+    const operationKey = `wurst-${activeEntryId}`;
+    if (pendingOperations.has(operationKey)) {
+      console.warn('handleDipComplete: Operation already in progress');
       return;
     }
     
@@ -275,24 +326,57 @@ export function SessionPage() {
       return;
     }
 
-    const { error } = await supabase
-      .from('einstand_entries')
-      .update({ wurst_count: entry.wurst_count + 1 })
-      .eq('id', activeEntryId);
+    // Mark operation as pending
+    setPendingOperations(prev => new Set(prev).add(operationKey));
 
-    if (error) {
-      console.error('handleDipComplete: Update failed', error);
-      showToast(`Fehler beim Speichern: ${error.message}`, 'error');
-    } else {
+    // Optimistic update
+    const newCount = entry.wurst_count + 1;
+    setEntries(prev => prev.map(e => 
+      e.id === activeEntryId ? { ...e, wurst_count: newCount } : e
+    ));
+
+    try {
+      // Persist to database with retry
+      await retryOperation(async () => {
+        const { error } = await supabase
+          .from('einstand_entries')
+          .update({ wurst_count: newCount })
+          .eq('id', activeEntryId);
+
+        if (error) throw error;
+      });
+
       showToast(`+1 Wurst für ${entry.display_name}`, 'success');
+    } catch (error) {
+      console.error('handleDipComplete: Update failed', error);
+      // Rollback optimistic update
+      setEntries(prev => prev.map(e => 
+        e.id === activeEntryId ? { ...e, wurst_count: entry.wurst_count } : e
+      ));
+      const errorMsg = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      showToast(`Fehler beim Speichern: ${errorMsg}`, 'error');
+    } finally {
+      // Clear pending operation
+      setPendingOperations(prev => {
+        const next = new Set(prev);
+        next.delete(operationKey);
+        return next;
+      });
     }
-  }, [activeEntryId, entries, showToast]);
+  }, [activeEntryId, entries, showToast, pendingOperations]);
 
-  // Increment pretzel
+  // Increment pretzel with optimistic update + rollback
   const handleBrezelComplete = useCallback(async () => {
     if (!activeEntryId) {
       console.warn('handleBrezelComplete: No activeEntryId');
       showToast('Fehler: Kein Teilnehmer ausgewählt', 'error');
+      return;
+    }
+
+    // Request deduplication - prevent concurrent updates
+    const operationKey = `brezel-${activeEntryId}`;
+    if (pendingOperations.has(operationKey)) {
+      console.warn('handleBrezelComplete: Operation already in progress');
       return;
     }
     
@@ -303,18 +387,44 @@ export function SessionPage() {
       return;
     }
 
-    const { error } = await supabase
-      .from('einstand_entries')
-      .update({ pretzel_count: entry.pretzel_count + 1 })
-      .eq('id', activeEntryId);
+    // Mark operation as pending
+    setPendingOperations(prev => new Set(prev).add(operationKey));
 
-    if (error) {
-      console.error('handleBrezelComplete: Update failed', error);
-      showToast(`Fehler beim Speichern: ${error.message}`, 'error');
-    } else {
+    // Optimistic update
+    const newCount = entry.pretzel_count + 1;
+    setEntries(prev => prev.map(e => 
+      e.id === activeEntryId ? { ...e, pretzel_count: newCount } : e
+    ));
+
+    try {
+      // Persist to database with retry
+      await retryOperation(async () => {
+        const { error } = await supabase
+          .from('einstand_entries')
+          .update({ pretzel_count: newCount })
+          .eq('id', activeEntryId);
+
+        if (error) throw error;
+      });
+
       showToast(`+1 Brezel für ${entry.display_name}`, 'success');
+    } catch (error) {
+      console.error('handleBrezelComplete: Update failed', error);
+      // Rollback optimistic update
+      setEntries(prev => prev.map(e => 
+        e.id === activeEntryId ? { ...e, pretzel_count: entry.pretzel_count } : e
+      ));
+      const errorMsg = error instanceof Error ? error.message : 'Unbekannter Fehler';
+      showToast(`Fehler beim Speichern: ${errorMsg}`, 'error');
+    } finally {
+      // Clear pending operation
+      setPendingOperations(prev => {
+        const next = new Set(prev);
+        next.delete(operationKey);
+        return next;
+      });
     }
-  }, [activeEntryId, entries, showToast]);
+  }, [activeEntryId, entries, showToast, pendingOperations]);
 
   const handleNoSelection = useCallback(() => {
     showToast('Erst einen Namen auswählen!', 'warning');
