@@ -253,7 +253,8 @@ export function SessionPage() {
       showToast(`Willkommen, ${data.display_name}!`, 'success');
     } catch (err) {
       console.error('Error joining:', err);
-      showToast('Fehler beim Beitreten', 'error');
+      const errorMsg = err instanceof Error ? err.message : 'Unbekannter Fehler';
+      showToast(`Fehler beim Beitreten: ${errorMsg}`, 'error');
     } finally {
       setIsJoining(false);
     }
@@ -261,10 +262,18 @@ export function SessionPage() {
 
   // Increment wurst
   const handleDipComplete = useCallback(async () => {
-    if (!activeEntryId) return;
+    if (!activeEntryId) {
+      console.warn('handleDipComplete: No activeEntryId');
+      showToast('Fehler: Kein Teilnehmer ausgewählt', 'error');
+      return;
+    }
     
     const entry = entries.find((e) => e.id === activeEntryId);
-    if (!entry) return;
+    if (!entry) {
+      console.error('handleDipComplete: Entry not found', { activeEntryId, entries });
+      showToast('Fehler: Teilnehmer nicht gefunden. Bitte Seite neu laden.', 'error');
+      return;
+    }
 
     const { error } = await supabase
       .from('einstand_entries')
@@ -272,7 +281,8 @@ export function SessionPage() {
       .eq('id', activeEntryId);
 
     if (error) {
-      showToast('Fehler: ' + error.message, 'error');
+      console.error('handleDipComplete: Update failed', error);
+      showToast(`Fehler beim Speichern: ${error.message}`, 'error');
     } else {
       showToast(`+1 Wurst für ${entry.display_name}`, 'success');
     }
@@ -280,10 +290,18 @@ export function SessionPage() {
 
   // Increment pretzel
   const handleBrezelComplete = useCallback(async () => {
-    if (!activeEntryId) return;
+    if (!activeEntryId) {
+      console.warn('handleBrezelComplete: No activeEntryId');
+      showToast('Fehler: Kein Teilnehmer ausgewählt', 'error');
+      return;
+    }
     
     const entry = entries.find((e) => e.id === activeEntryId);
-    if (!entry) return;
+    if (!entry) {
+      console.error('handleBrezelComplete: Entry not found', { activeEntryId, entries });
+      showToast('Fehler: Teilnehmer nicht gefunden. Bitte Seite neu laden.', 'error');
+      return;
+    }
 
     const { error } = await supabase
       .from('einstand_entries')
@@ -291,7 +309,8 @@ export function SessionPage() {
       .eq('id', activeEntryId);
 
     if (error) {
-      showToast('Fehler: ' + error.message, 'error');
+      console.error('handleBrezelComplete: Update failed', error);
+      showToast(`Fehler beim Speichern: ${error.message}`, 'error');
     } else {
       showToast(`+1 Brezel für ${entry.display_name}`, 'success');
     }
